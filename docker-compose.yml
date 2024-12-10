@@ -1,0 +1,21 @@
+services:
+  account_db:
+    image: postgres
+    container_name: account_db
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=account_db
+    volumes:
+      - ./db:/docker-entrypoint-initdb.d
+  app:
+    restart: always
+    build: .
+    ports:
+      - "8080:8080"
+    depends_on:
+      - account_db
+    environment:
+      SPRING_DATASOURCE_URL: 'jdbc:postgresql://account_db:5432/account_db'
+      JAVA_OPTS: '-Xmx512m'
