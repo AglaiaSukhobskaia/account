@@ -1,8 +1,16 @@
 package com.account.dto;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.math.BigDecimal;
 
-public record AccountDto(Long id,
-                         String owner,
-                         BigDecimal balance) {
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class AccountDto {
+    private Long id;
+    private String owner;
+    private BigDecimal balance;
 }
