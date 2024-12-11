@@ -1,6 +1,7 @@
 package com.account.controller;
 
 import com.account.dto.AccountDto;
+import com.account.exception.Handler;
 import com.account.service.AccountService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -16,7 +17,7 @@ import java.math.BigDecimal;
 @RequestMapping("/accounts")
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class AccountController {
+public class AccountController implements Handler {
     AccountService accountService;
 
     @PostMapping
