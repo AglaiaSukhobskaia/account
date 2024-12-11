@@ -1,6 +1,7 @@
 package com.account.controller;
 
 import com.account.dto.AccountDto;
+import com.account.dto.TransactionDto;
 import com.account.exception.Handler;
 import com.account.service.AccountService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -12,6 +13,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.List;
 
 @RestController
 @RequestMapping("/accounts")
@@ -52,5 +55,13 @@ public class AccountController implements Handler {
     @Operation(summary = "Предоставление текущего баланса по счету")
     public ResponseEntity<BigDecimal> getBalance(@PathVariable @Parameter(description = "ID счета") Long id) {
         return ResponseEntity.ok(accountService.getBalance(id));
+    }
+
+    @GetMapping("{id}/transactions")
+    @Operation(summary = "Предоставление выписки по операциям за период времени")
+    public ResponseEntity<List<TransactionDto>> getTransactions(@PathVariable @Parameter(description = "ID счета") Long id,
+                                                                @RequestParam @Parameter(description = "Период с") Instant fromTime,
+                                                                @RequestParam @Parameter(description = "Период по") Instant toTime) {
+        return ResponseEntity.ok(accountService.getTransactions(id, fromTime, toTime));
     }
 }
