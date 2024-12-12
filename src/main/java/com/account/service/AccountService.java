@@ -37,38 +37,50 @@ public class AccountService {
     @Transactional
     public AccountDto deposit(Long accountId, BigDecimal amount) {
         var account = getAccount(accountId);
-        account.setBalance(account.getBalance().add(amount));
-        createTransaction(account, TransactionType.DEPOSIT, amount);
-        return mapper.map(accountRepository.save(account), AccountDto.class);
+        synchronized (account) {
+            account.setBalance(account.getBalance().add(amount));
+            createTransaction(account, TransactionType.DEPOSIT, amount);
+            accountRepository.save(account);
+        }
+        return mapper.map(account, AccountDto.class);
     }
 
     @Transactional
     public AccountDto withdraw(Long accountId, BigDecimal amount) {
         var account = getAccount(accountId);
-        if (account.getBalance().compareTo(amount) >= 0) {
-            account.setBalance(account.getBalance().subtract(amount));
-            createTransaction(account, TransactionType.WITHDRAW, amount);
-            return mapper.map(accountRepository.save(account), AccountDto.class);
-        } else {
-            throw new NotEnoughMoneyException(accountId);
+        synchronized (account) {
+            if (account.getBalance().compareTo(amount) >= 0) {
+                account.setBalance(account.getBalance().subtract(amount));
+                createTransaction(account, TransactionType.WITHDRAW, amount);
+                accountRepository.save(account);
+            } else {
+                throw new NotEnoughMoneyException(accountId);
+            }
         }
+        return mapper.map(account, AccountDto.class);
     }
 
     @Transactional
     public AccountDto transfer(Long fromAccountId, Long toAccountId, BigDecimal amount) {
-        var fromAccount = getAccount(fromAccountId);
-        var toAccount = getAccount(toAccountId);
+        var sourceAccount = getAccount(fromAccountId);
+        var targetAccount = getAccount(toAccountId);
 
-        if (fromAccount.getBalance().compareTo(amount) >= 0) {
-            fromAccount.setBalance(fromAccount.getBalance().subtract(amount));
-            toAccount.setBalance(toAccount.getBalance().add(amount));
-            accountRepository.save(fromAccount);
-            createTransaction(fromAccount, TransactionType.WITHDRAW, amount);
-            accountRepository.save(toAccount);
-            createTransaction(toAccount, TransactionType.DEPOSIT, amount);
-            return mapper.map(fromAccount, AccountDto.class);
-        } else {
-            throw new NotEnoughMoneyException(fromAccountId);
+        Long firstLockId = Math.min(fromAccountId, toAccountId);
+        Long secondLockId = Math.max(fromAccountId, toAccountId);
+
+        synchronized (firstLockId) {
+            synchronized (secondLockId) {
+                if (sourceAccount.getBalance().compareTo(amount) >= 0) {
+                    sourceAccount.setBalance(sourceAccount.getBalance().subtract(amount));
+                    targetAccount.setBalance(targetAccount.getBalance().add(amount));
+                    createTransaction(sourceAccount, TransactionType.WITHDRAW, amount);
+                    createTransaction(targetAccount, TransactionType.DEPOSIT, amount);
+                    accountRepository.saveAll(List.of(sourceAccount, targetAccount));
+                    return mapper.map(sourceAccount, AccountDto.class);
+                } else {
+                    throw new NotEnoughMoneyException(fromAccountId);
+                }
+            }
         }
     }
 
