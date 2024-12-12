@@ -7,6 +7,7 @@ import com.account.service.AccountService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -29,21 +30,26 @@ public class AccountController implements Handler {
     @PostMapping
     @Operation(summary = "Создание нового аккаунта")
     public ResponseEntity<AccountDto> createAccount(@RequestParam @Parameter(description = "Владелец счета")
-                                                    @NotBlank(message = "Владелец счета не должен быть пустым") String owner) {
+                                                    @NotBlank(message = "Владелец счета не должен быть пустым")
+                                                    String owner) {
         return ResponseEntity.ok(accountService.createAccount(owner));
     }
 
     @PostMapping("/{id}/deposit")
     @Operation(summary = "Зачисление суммы на счет")
     public ResponseEntity<AccountDto> deposit(@PathVariable @Parameter(description = "ID счета") Long id,
-                                              @RequestParam @Parameter(description = "Сумма в рублях") BigDecimal amount) {
+                                              @RequestParam @Parameter(description = "Сумма в рублях")
+                                              @PositiveOrZero(message = "Сумма должна быть неотрицательной")
+                                              BigDecimal amount) {
         return ResponseEntity.ok(accountService.deposit(id, amount));
     }
 
     @PostMapping("/{id}/withdraw")
     @Operation(summary = "Списание суммы со счета")
     public ResponseEntity<AccountDto> withdraw(@PathVariable @Parameter(description = "ID счета") Long id,
-                                               @RequestParam @Parameter(description = "Сумма в рублях") BigDecimal amount) {
+                                               @RequestParam @Parameter(description = "Сумма в рублях")
+                                               @PositiveOrZero(message = "Сумма должна быть неотрицательной")
+                                               BigDecimal amount) {
         return ResponseEntity.ok(accountService.withdraw(id, amount));
     }
 
@@ -51,7 +57,9 @@ public class AccountController implements Handler {
     @Operation(summary = "Перевод суммы с одного счета на другой")
     public ResponseEntity<AccountDto> transfer(@PathVariable @Parameter(description = "ID счета отправителя") Long fromId,
                                                @PathVariable @Parameter(description = "ID счета получателя") Long toId,
-                                               @RequestParam @Parameter(description = "Сумма в рублях") BigDecimal amount) {
+                                               @RequestParam @Parameter(description = "Сумма в рублях")
+                                               @PositiveOrZero(message = "Сумма должна быть неотрицательной")
+                                               BigDecimal amount) {
         return ResponseEntity.ok(accountService.transfer(fromId, toId, amount));
     }
 
