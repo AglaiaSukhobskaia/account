@@ -97,7 +97,7 @@ public class AccountService {
                 .toList();
     }
 
-    private Account getAccount(Long accountId) {
+    public Account getAccount(Long accountId) {
         return accountRepository.findById(accountId)
                 .orElseThrow(() -> new AccountNotFoundException(accountId));
     }
