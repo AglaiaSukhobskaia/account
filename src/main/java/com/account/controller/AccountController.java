@@ -6,10 +6,12 @@ import com.account.exception.Handler;
 import com.account.service.AccountService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -19,13 +21,15 @@ import java.util.List;
 @RestController
 @RequestMapping("/accounts")
 @RequiredArgsConstructor
+@Validated
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class AccountController implements Handler {
     AccountService accountService;
 
     @PostMapping
     @Operation(summary = "Создание нового аккаунта")
-    public ResponseEntity<AccountDto> createAccount(@RequestParam @Parameter(description = "Владелец счета") String owner) {
+    public ResponseEntity<AccountDto> createAccount(@RequestParam @Parameter(description = "Владелец счета")
+                                                    @NotBlank(message = "Владелец счета не должен быть пустым") String owner) {
         return ResponseEntity.ok(accountService.createAccount(owner));
     }
 
